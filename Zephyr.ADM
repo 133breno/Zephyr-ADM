@@ -1,151 +1,588 @@
--- Zephyr Hub Admin GUI (Oficial!)
--- By Zephyr
+-- ZephyrHub ADM
+-- Criado por: botzinYT12/Zehyr.ofc
+-- Versão: 1.0
 
--- Serviços principais
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
 
--- Jogador local e GUI principal
-local player = Players.LocalPlayer
-local PlayerGui = player:WaitForChild("PlayerGui")
+-- Configurações principais
+local HubName = "ZephyrHub ADM"
+local MainColor = Color3.fromRGB(0, 120, 215)
+local SecondaryColor = Color3.fromRGB(40, 40, 40)
+local TextColor = Color3.fromRGB(255, 255, 255)
 
--- Criar a interface principal
-local MainGui = Instance.new("ScreenGui", PlayerGui)
-MainGui.Name = "ZephyrHub ADM"
+-- Cria a GUI principal
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ZephyrHubADM"
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Criar um quadro principal da interface
-local Frame = Instance.new("Frame", MainGui)
-Frame.Size = UDim2.new(0, 500, 0, 400)
-Frame.Position = UDim2.new(0.5, -250, 0.5, -200)
-Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-Frame.Active = true
-Frame.Draggable = true -- Permite arrastar a interface
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 400, 0, 500)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
+MainFrame.BackgroundColor3 = SecondaryColor
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.ClipsDescendants = true
 
--- Barra superior (título + controles)
-local TopBar = Instance.new("Frame", Frame)
-TopBar.Size = UDim2.new(1, 0, 0, 30)
-TopBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+local TitleBar = Instance.new("Frame")
+TitleBar.Name = "TitleBar"
+TitleBar.Size = UDim2.new(1, 0, 0, 30)
+TitleBar.BackgroundColor3 = MainColor
+TitleBar.BorderSizePixel = 0
 
-local Title = Instance.new("TextLabel", TopBar)
-Title.Size = UDim2.new(0.8, 0, 1, 0)
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Size = UDim2.new(0.7, 0, 1, 0)
 Title.Position = UDim2.new(0, 10, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "Zephyr Visual Admin"
-Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Text = HubName
+Title.TextColor3 = TextColor
+Title.TextSize = 14
 Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Font = Enum.Font.GothamBold
 
--- Botões de minimizar, maximizar e fechar
-local buttons = { "-", "+", "X" }
-for i, text in ipairs(buttons) do
-    local btn = Instance.new("TextButton", TopBar)
-    btn.Size = UDim2.new(0, 30, 1, 0)
-    btn.Position = UDim2.new(1, -35 * i, 0, 0)
-    btn.Text = text
-    btn.TextColor3 = Color3.new(1, 1, 1)
-    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    btn.MouseButton1Click:Connect(function()
-        if text == "-" then
-            Frame.Visible = false
-        elseif text == "+" then
-            Frame.Visible = true
-        elseif text == "X" then
-            MainGui:Destroy()
-        end
-    end)
+local MinimizeButton = Instance.new("TextButton")
+MinimizeButton.Name = "MinimizeButton"
+MinimizeButton.Size = UDim2.new(0, 30, 1, 0)
+MinimizeButton.Position = UDim2.new(0.7, 0, 0, 0)
+MinimizeButton.BackgroundTransparency = 1
+MinimizeButton.Text = "-"
+MinimizeButton.TextColor3 = TextColor
+MinimizeButton.TextSize = 14
+MinimizeButton.Font = Enum.Font.GothamBold
+
+local MaximizeButton = Instance.new("TextButton")
+MaximizeButton.Name = "MaximizeButton"
+MaximizeButton.Size = UDim2.new(0, 30, 1, 0)
+MaximizeButton.Position = UDim2.new(0.8, 0, 0, 0)
+MaximizeButton.BackgroundTransparency = 1
+MaximizeButton.Text = "+"
+MaximizeButton.TextColor3 = TextColor
+MaximizeButton.TextSize = 14
+MaximizeButton.Font = Enum.Font.GothamBold
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "CloseButton"
+CloseButton.Size = UDim2.new(0, 30, 1, 0)
+CloseButton.Position = UDim2.new(0.9, 0, 0, 0)
+CloseButton.BackgroundTransparency = 1
+CloseButton.Text = "X"
+CloseButton.TextColor3 = TextColor
+CloseButton.TextSize = 14
+CloseButton.Font = Enum.Font.GothamBold
+
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Name = "ContentFrame"
+ContentFrame.Size = UDim2.new(1, -10, 1, -40)
+ContentFrame.Position = UDim2.new(0, 5, 0, 35)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.ClipsDescendants = true
+
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Name = "ScrollFrame"
+ScrollFrame.Size = UDim2.new(1, 0, 1, 0)
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+ScrollFrame.ScrollBarThickness = 5
+ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Name = "UIListLayout"
+UIListLayout.Padding = UDim.new(0, 5)
+
+-- Player List Section
+local PlayerListSection = Instance.new("Frame")
+PlayerListSection.Name = "PlayerListSection"
+PlayerListSection.Size = UDim2.new(1, 0, 0, 150)
+PlayerListSection.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+PlayerListSection.BorderSizePixel = 0
+
+local PlayerListTitle = Instance.new("TextLabel")
+PlayerListTitle.Name = "PlayerListTitle"
+PlayerListTitle.Size = UDim2.new(1, 0, 0, 25)
+PlayerListTitle.BackgroundColor3 = MainColor
+PlayerListTitle.BorderSizePixel = 0
+PlayerListTitle.Text = "Lista de Jogadores"
+PlayerListTitle.TextColor3 = TextColor
+PlayerListTitle.TextSize = 14
+
+local PlayerListScroll = Instance.new("ScrollingFrame")
+PlayerListScroll.Name = "PlayerListScroll"
+PlayerListScroll.Size = UDim2.new(1, -10, 0, 100)
+PlayerListScroll.Position = UDim2.new(0, 5, 0, 30)
+PlayerListScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+PlayerListScroll.ScrollBarThickness = 5
+PlayerListScroll.BackgroundTransparency = 1
+
+local PlayerListLayout = Instance.new("UIListLayout")
+PlayerListLayout.Name = "PlayerListLayout"
+PlayerListLayout.Padding = UDim.new(0, 5)
+
+local PlayerSearchBox = Instance.new("TextBox")
+PlayerSearchBox.Name = "PlayerSearchBox"
+PlayerSearchBox.Size = UDim2.new(0.7, 0, 0, 25)
+PlayerSearchBox.Position = UDim2.new(0, 5, 0, 135)
+PlayerSearchBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+PlayerSearchBox.BorderSizePixel = 0
+PlayerSearchBox.PlaceholderText = "Digite o nome do jogador..."
+PlayerSearchBox.Text = ""
+PlayerSearchBox.TextColor3 = TextColor
+PlayerSearchBox.TextSize = 14
+PlayerSearchBox.ClearTextOnFocus = false
+
+local RefreshButton = Instance.new("TextButton")
+RefreshButton.Name = "RefreshButton"
+RefreshButton.Size = UDim2.new(0.25, -10, 0, 25)
+RefreshButton.Position = UDim2.new(0.75, 5, 0, 135)
+RefreshButton.BackgroundColor3 = MainColor
+RefreshButton.BorderSizePixel = 0
+RefreshButton.Text = "Atualizar"
+RefreshButton.TextColor3 = TextColor
+RefreshButton.TextSize = 14
+
+-- Funções do Hub
+local function CreateButton(text, sizeY)
+    local button = Instance.new("TextButton")
+    button.Name = text .. "Button"
+    button.Size = UDim2.new(1, 0, 0, sizeY or 30)
+    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    button.BorderSizePixel = 0
+    button.Text = text
+    button.TextColor3 = TextColor
+    button.TextSize = 14
+    button.Font = Enum.Font.Gotham
+    
+    return button
 end
 
--- ScrollFrame para comandos e ações
-local ScrollFrame = Instance.new("ScrollingFrame", Frame)
-ScrollFrame.Position = UDim2.new(0, 10, 0, 40)
-ScrollFrame.Size = UDim2.new(1, -20, 1, -50)
-ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 800)
-ScrollFrame.ScrollBarThickness = 10
-ScrollFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-
--- Caixa para digitar o nome do player
-local playerBox = Instance.new("TextBox", ScrollFrame)
-playerBox.Size = UDim2.new(1, -20, 0, 30)
-playerBox.Position = UDim2.new(0, 10, 0, 10)
-playerBox.PlaceholderText = "Digite o nome do jogador"
-
--- Atualizar lista de jogadores (mini-GUI)
-local playerListBtn = Instance.new("TextButton", ScrollFrame)
-playerListBtn.Size = UDim2.new(1, -20, 0, 30)
-playerListBtn.Position = UDim2.new(0, 10, 0, 50)
-playerListBtn.Text = "Atualizar Lista de Jogadores"
-
-playerListBtn.MouseButton1Click:Connect(function()
-    print("Jogadores disponíveis:")
-    for _, p in pairs(Players:GetPlayers()) do
-        print("- " .. p.Name)
-    end
-end)
-
--- Função para pegar jogador
-local function getTargetPlayer(name)
-    for _, p in ipairs(Players:GetPlayers()) do
-        if string.lower(p.Name) == string.lower(name) then
-            return p
+local function UpdatePlayerList()
+    PlayerListScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    
+    -- Limpa a lista atual
+    for _, child in ipairs(PlayerListScroll:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
         end
     end
+    
+    -- Adiciona os jogadores atuais
+    local players = Players:GetPlayers()
+    for _, player in ipairs(players) do
+        local playerButton = Instance.new("TextButton")
+        playerButton.Name = player.Name .. "Button"
+        playerButton.Size = UDim2.new(1, 0, 0, 25)
+        playerButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        playerButton.BorderSizePixel = 0
+        playerButton.Text = player.Name
+        playerButton.TextColor3 = TextColor
+        playerButton.TextSize = 14
+        playerButton.Parent = PlayerListScroll
+        
+        PlayerListScroll.CanvasSize = PlayerListScroll.CanvasSize + UDim2.new(0, 0, 0, 30)
+    end
+end
+
+local function GetSelectedPlayer()
+    local searchText = string.lower(PlayerSearchBox.Text)
+    if searchText == "" then
+        return nil
+    end
+    
+    for _, player in ipairs(Players:GetPlayers()) do
+        if string.find(string.lower(player.Name), searchText) then
+            return player
+        end
+    end
+    
     return nil
 end
 
--- Adicionar botões de comandos
-local commands = {
-    {"Explode", function(target)
-        local explosion = Instance.new("Explosion", workspace)
-        explosion.Position = target.Character.HumanoidRootPart.Position
-    end},
-    {"Kill", function(target)
-        target:LoadCharacter()
-    end},
-    {"Jail", function(target)
-        local jail = Instance.new("Part", workspace)
-        jail.Size = Vector3.new(6,6,6)
-        jail.Anchored = true
-        jail.CanCollide = true
-        jail.Transparency = 0.4
-        jail.Color = Color3.fromRGB(0, 0, 255)
-        jail.CFrame = target.Character.HumanoidRootPart.CFrame
-        target.CharacterAdded:Connect(function()
-            jail.CFrame = target.Character:WaitForChild("HumanoidRootPart").CFrame
-        end)
-    end},
-    {"Freeze", function(target)
-        local hrp = target.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then hrp.Anchored = true end
-    end},
-    {"Unfreeze", function(target)
-        local hrp = target.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then hrp.Anchored = false end
-    end},
-    {"Fling", function(target)
-        local hrp = target.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then hrp.Velocity = Vector3.new(9999,9999,9999) end
-    end},
-    {"Kick", function(target)
-        target:Kick("Hahaha Se-Fud3u")
-    end}
-    -- Outras ações podem ser adicionadas aqui
-}
+-- Funções de administração
+local function ExplodePlayer(player)
+    if not player or not player.Character then return end
+    
+    local character = player.Character
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    local explosion = Instance.new("Explosion")
+    explosion.Position = humanoidRootPart.Position
+    explosion.BlastPressure = 100000
+    explosion.BlastRadius = 10
+    explosion.DestroyJointRadiusPercent = 0
+    explosion.ExplosionType = Enum.ExplosionType.NoCraters
+    explosion.Parent = workspace
+    
+    -- Efeito visual
+    local part = Instance.new("Part")
+    part.Size = Vector3.new(10, 10, 10)
+    part.Position = humanoidRootPart.Position
+    part.Anchored = true
+    part.CanCollide = false
+    part.Transparency = 0.5
+    part.Color = Color3.fromRGB(255, 100, 100)
+    part.Material = Enum.Material.Neon
+    part.Shape = Enum.PartType.Ball
+    part.Parent = workspace
+    
+    game:GetService("Debris"):AddItem(part, 1)
+end
 
--- Criar os botões dos comandos
-for i, cmd in ipairs(commands) do
-    local button = Instance.new("TextButton", ScrollFrame)
-    button.Size = UDim2.new(1, -20, 0, 30)
-    button.Position = UDim2.new(0, 10, 0, 80 + (i * 40))
-    button.Text = cmd[1]
-    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    button.TextColor3 = Color3.new(1, 1, 1)
-    button.MouseButton1Click:Connect(function()
-        local name = playerBox.Text
-        local target = getTargetPlayer(name)
-        if target then
-            cmd[2](target)
-        else
-            warn("Jogador não encontrado: " .. name)
+local function KillWithItem(player)
+    if not player or not player.Character then return end
+    
+    local character = player.Character
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+    
+    -- Teleporta para o void
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if humanoidRootPart then
+        humanoidRootPart.CFrame = CFrame.new(0, -500, 0)
+    end
+    
+    -- Mata o jogador
+    humanoid:TakeDamage(humanoid.MaxHealth)
+end
+
+local function SimpleKill(player)
+    if not player or not player.Character then return end
+    
+    local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid:TakeDamage(humanoid.MaxHealth)
+    end
+end
+
+local function JailPlayer(player)
+    if not player or not player.Character then return end
+    
+    local character = player.Character
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    -- Remove a jaula antiga se existir
+    local oldJail = workspace:FindFirstChild(player.Name .. "_Jail")
+    if oldJail then
+        oldJail:Destroy()
+    end
+    
+    -- Cria a nova jaula
+    local jail = Instance.new("Model")
+    jail.Name = player.Name .. "_Jail"
+    
+    local size = 10
+    local transparency = 0.7
+    local color = Color3.fromRGB(0, 100, 255)
+    
+    -- Cria as paredes da jaula
+    for i = 1, 6 do
+        local part = Instance.new("Part")
+        part.Size = Vector3.new(size, size, 1)
+        part.Anchored = true
+        part.CanCollide = true
+        part.Transparency = transparency
+        part.Color = color
+        part.Material = Enum.Material.Neon
+        
+        if i == 1 then -- Frente
+            part.CFrame = humanoidRootPart.CFrame * CFrame.new(0, 0, -size/2)
+        elseif i == 2 then -- Trás
+            part.CFrame = humanoidRootPart.CFrame * CFrame.new(0, 0, size/2)
+        elseif i == 3 then -- Esquerda
+            part.CFrame = humanoidRootPart.CFrame * CFrame.new(-size/2, 0, 0) * CFrame.Angles(0, math.pi/2, 0)
+        elseif i == 4 then -- Direita
+            part.CFrame = humanoidRootPart.CFrame * CFrame.new(size/2, 0, 0) * CFrame.Angles(0, math.pi/2, 0)
+        elseif i == 5 then -- Teto
+            part.CFrame = humanoidRootPart.CFrame * CFrame.new(0, size/2, 0) * CFrame.Angles(math.pi/2, 0, 0)
+        elseif i == 6 then -- Chão
+            part.CFrame = humanoidRootPart.CFrame * CFrame.new(0, -size/2, 0) * CFrame.Angles(math.pi/2, 0, 0)
+        end
+        
+        part.Parent = jail
+    end
+    
+    jail.Parent = workspace
+    
+    -- Conecta para teleportar o jogador de volta se ele resetar
+    player.CharacterAdded:Connect(function(newCharacter)
+        wait(1) -- Espera o personagem carregar
+        local newRoot = newCharacter:FindFirstChild("HumanoidRootPart")
+        if newRoot then
+            newRoot.CFrame = humanoidRootPart.CFrame
         end
     end)
 end
+
+local function FreezePlayer(player)
+    if not player or not player.Character then return end
+    
+    local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid.WalkSpeed = 0
+        humanoid.JumpPower = 0
+        
+        -- Garante que continue congelado mesmo após reset
+        player.CharacterAdded:Connect(function(newCharacter)
+            wait(1)
+            local newHumanoid = newCharacter:FindFirstChildOfClass("Humanoid")
+            if newHumanoid then
+                newHumanoid.WalkSpeed = 0
+                newHumanoid.JumpPower = 0
+            end
+        end)
+    end
+end
+
+local function UnfreezePlayer(player)
+    if not player or not player.Character then return end
+    
+    local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid.WalkSpeed = 16 -- Valor padrão
+        humanoid.JumpPower = 50 -- Valor padrão
+    end
+end
+
+local function CrashPlayer(player)
+    if not player then return end
+    
+    -- Envia uma grande quantidade de RemoteEvents para travar o cliente
+    for i = 1, 1000 do
+        local remote = Instance.new("RemoteEvent")
+        remote.Name = "CrashRemote_" .. HttpService:GenerateGUID(false)
+        remote.Parent = player:FindFirstChildOfClass("PlayerGui") or player:WaitForChild("PlayerGui", 5)
+        remote:FireClient(player, string.rep("A", 10000))
+        game:GetService("Debris"):AddItem(remote, 0.1)
+    end
+end
+
+local function KickPlayer(player)
+    if not player then return end
+    
+    -- Tenta kickar o jogador
+    pcall(function()
+        player:Kick("Hahaha Se- Fud3u")
+    end)
+end
+
+local function BanPlayer(player)
+    if not player then return end
+    
+    -- Ban temporário (1 minuto)
+    KickPlayer(player)
+    
+    -- Em um script real, você precisaria de um sistema para lembrar quem está banido
+    -- Isso é apenas uma simulação
+    task.delay(60, function()
+        -- Aqui você removeria o jogador da lista de banidos
+    end)
+end
+
+local function FlingPlayer(player)
+    if not player or not player.Character then return end
+    
+    local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    -- Aplica uma força violenta para fling
+    humanoidRootPart.Velocity = Vector3.new(
+        math.random(-5000, 5000),
+        math.random(2000, 5000),
+        math.random(-5000, 5000)
+    )
+end
+
+local function MessageControl(player, message)
+    if not player then return end
+    
+    -- Simula o jogador enviando uma mensagem no chat
+    local args = {
+        [1] = message,
+        [2] = "All"
+    }
+    
+    game:GetService("ReplicatedStorage"):FindFirstChild("DefaultChatSystemChatEvents"):FindFirstChild("SayMessageRequest"):FireServer(unpack(args))
+end
+
+local function ControlPlayer(player)
+    if not player or not player.Character or not Players.LocalPlayer.Character then return end
+    
+    local targetRoot = player.Character:FindFirstChild("HumanoidRootPart")
+    local localRoot = Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    
+    if not targetRoot or not localRoot then return end
+    
+    -- Cria uma conexão para seguir o jogador
+    local connection
+    connection = RunService.Heartbeat:Connect(function()
+        if player.Character and targetRoot and localRoot then
+            localRoot.CFrame = targetRoot.CFrame * CFrame.new(0, 0, -3)
+        else
+            connection:Disconnect()
+        end
+    end)
+end
+
+local function SendMessageToPlayer(player, message)
+    if not player then return end
+    
+    -- Envia uma mensagem para a tela do jogador
+    local gui = Instance.new("ScreenGui")
+    local frame = Instance.new("Frame")
+    local label = Instance.new("TextLabel")
+    
+    gui.Name = "AdminMessage"
+    gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    gui.Parent = player:FindFirstChildOfClass("PlayerGui") or player:WaitForChild("PlayerGui", 5)
+    
+    frame.Size = UDim2.new(0.8, 0, 0.2, 0)
+    frame.Position = UDim2.new(0.1, 0, 0.1, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    frame.BorderSizePixel = 0
+    frame.Parent = gui
+    
+    label.Size = UDim2.new(0.9, 0, 0.9, 0)
+    label.Position = UDim2.new(0.05, 0, 0.05, 0)
+    label.BackgroundTransparency = 1
+    label.Text = message
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextSize = 14
+    label.TextWrapped = true
+    label.Parent = frame
+    
+    game:GetService("Debris"):AddItem(gui, 10)
+end
+
+local function RemovePlayerItems(player)
+    if not player or not player.Character then return end
+    
+    for _, item in ipairs(player.Character:GetDescendants()) do
+        if item:IsA("Accessory") or item:IsA("Hat") then
+            item:Destroy()
+        end
+    end
+end
+
+-- Configura a interface
+TitleBar.Parent = MainFrame
+Title.Parent = TitleBar
+MinimizeButton.Parent = TitleBar
+MaximizeButton.Parent = TitleBar
+CloseButton.Parent = TitleBar
+ContentFrame.Parent = MainFrame
+ScrollFrame.Parent = ContentFrame
+UIListLayout.Parent = ScrollFrame
+
+-- Player List Section
+PlayerListSection.Parent = ScrollFrame
+PlayerListTitle.Parent = PlayerListSection
+PlayerListScroll.Parent = PlayerListSection
+PlayerListLayout.Parent = PlayerListScroll
+PlayerSearchBox.Parent = PlayerListSection
+RefreshButton.Parent = PlayerListSection
+
+-- Adiciona os botões de funções
+local buttons = {
+    {"Explode", ExplodePlayer},
+    {"Kill com Item", KillWithItem},
+    {"Kill Simples", SimpleKill},
+    {"Jail", JailPlayer},
+    {"Freeze", FreezePlayer},
+    {"Unfreeze", UnfreezePlayer},
+    {"Crash", CrashPlayer},
+    {"Kick", KickPlayer},
+    {"Ban", BanPlayer},
+    {"Fling", FlingPlayer},
+    {"Msg Control", function(player) 
+        local message = "Mensagem de teste" -- Poderia ser um TextBox para input
+        MessageControl(player, message)
+    end},
+    {"Control", ControlPlayer},
+    {"Mensagem", function(player) 
+        SendMessageToPlayer(player, "Você foi avisado por um ADM!")
+    end},
+    {"Remover Itens", RemovePlayerItems}
+}
+
+for _, buttonData in ipairs(buttons) do
+    local button = CreateButton(buttonData[1])
+    button.Parent = ScrollFrame
+    ScrollFrame.CanvasSize = ScrollFrame.CanvasSize + UDim2.new(0, 0, 0, 35)
+    
+    button.MouseButton1Click:Connect(function()
+        local player = GetSelectedPlayer()
+        if player then
+            buttonData[2](player)
+        else
+            SendMessageToPlayer(Players.LocalPlayer, "Selecione um jogador primeiro!")
+        end
+    end)
+end
+
+-- Conecta os eventos
+RefreshButton.MouseButton1Click:Connect(UpdatePlayerList)
+
+MinimizeButton.MouseButton1Click:Connect(function()
+    MainFrame.Size = UDim2.new(0, 400, 0, 30)
+end)
+
+MaximizeButton.MouseButton1Click:Connect(function()
+    MainFrame.Size = UDim2.new(0, 400, 0, 500)
+end)
+
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- Atualiza a lista de jogadores inicialmente
+UpdatePlayerList()
+
+-- Conecta para atualizar quando um jogador entra/sai
+Players.PlayerAdded:Connect(UpdatePlayerList)
+Players.PlayerRemoving:Connect(UpdatePlayerList)
+
+-- Finalmente, adiciona a GUI ao PlayerGui
+ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+
+-- Função para tornar a janela arrastável
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function updateInput(input)
+    local delta = input.Position - dragStart
+    MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+TitleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+TitleBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        updateInput(input)
+    end
+end)
