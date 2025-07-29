@@ -1,0 +1,151 @@
+-- Zephyr Hub Admin GUI (Oficial!)
+-- By Zephyr
+
+-- Serviços principais
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+-- Jogador local e GUI principal
+local player = Players.LocalPlayer
+local PlayerGui = player:WaitForChild("PlayerGui")
+
+-- Criar a interface principal
+local MainGui = Instance.new("ScreenGui", PlayerGui)
+MainGui.Name = "ZephyrHub ADM"
+
+-- Criar um quadro principal da interface
+local Frame = Instance.new("Frame", MainGui)
+Frame.Size = UDim2.new(0, 500, 0, 400)
+Frame.Position = UDim2.new(0.5, -250, 0.5, -200)
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Frame.Active = true
+Frame.Draggable = true -- Permite arrastar a interface
+
+-- Barra superior (título + controles)
+local TopBar = Instance.new("Frame", Frame)
+TopBar.Size = UDim2.new(1, 0, 0, 30)
+TopBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+
+local Title = Instance.new("TextLabel", TopBar)
+Title.Size = UDim2.new(0.8, 0, 1, 0)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "Zephyr Visual Admin"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Botões de minimizar, maximizar e fechar
+local buttons = { "-", "+", "X" }
+for i, text in ipairs(buttons) do
+    local btn = Instance.new("TextButton", TopBar)
+    btn.Size = UDim2.new(0, 30, 1, 0)
+    btn.Position = UDim2.new(1, -35 * i, 0, 0)
+    btn.Text = text
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    btn.MouseButton1Click:Connect(function()
+        if text == "-" then
+            Frame.Visible = false
+        elseif text == "+" then
+            Frame.Visible = true
+        elseif text == "X" then
+            MainGui:Destroy()
+        end
+    end)
+end
+
+-- ScrollFrame para comandos e ações
+local ScrollFrame = Instance.new("ScrollingFrame", Frame)
+ScrollFrame.Position = UDim2.new(0, 10, 0, 40)
+ScrollFrame.Size = UDim2.new(1, -20, 1, -50)
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 800)
+ScrollFrame.ScrollBarThickness = 10
+ScrollFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+
+-- Caixa para digitar o nome do player
+local playerBox = Instance.new("TextBox", ScrollFrame)
+playerBox.Size = UDim2.new(1, -20, 0, 30)
+playerBox.Position = UDim2.new(0, 10, 0, 10)
+playerBox.PlaceholderText = "Digite o nome do jogador"
+
+-- Atualizar lista de jogadores (mini-GUI)
+local playerListBtn = Instance.new("TextButton", ScrollFrame)
+playerListBtn.Size = UDim2.new(1, -20, 0, 30)
+playerListBtn.Position = UDim2.new(0, 10, 0, 50)
+playerListBtn.Text = "Atualizar Lista de Jogadores"
+
+playerListBtn.MouseButton1Click:Connect(function()
+    print("Jogadores disponíveis:")
+    for _, p in pairs(Players:GetPlayers()) do
+        print("- " .. p.Name)
+    end
+end)
+
+-- Função para pegar jogador
+local function getTargetPlayer(name)
+    for _, p in ipairs(Players:GetPlayers()) do
+        if string.lower(p.Name) == string.lower(name) then
+            return p
+        end
+    end
+    return nil
+end
+
+-- Adicionar botões de comandos
+local commands = {
+    {"Explode", function(target)
+        local explosion = Instance.new("Explosion", workspace)
+        explosion.Position = target.Character.HumanoidRootPart.Position
+    end},
+    {"Kill", function(target)
+        target:LoadCharacter()
+    end},
+    {"Jail", function(target)
+        local jail = Instance.new("Part", workspace)
+        jail.Size = Vector3.new(6,6,6)
+        jail.Anchored = true
+        jail.CanCollide = true
+        jail.Transparency = 0.4
+        jail.Color = Color3.fromRGB(0, 0, 255)
+        jail.CFrame = target.Character.HumanoidRootPart.CFrame
+        target.CharacterAdded:Connect(function()
+            jail.CFrame = target.Character:WaitForChild("HumanoidRootPart").CFrame
+        end)
+    end},
+    {"Freeze", function(target)
+        local hrp = target.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then hrp.Anchored = true end
+    end},
+    {"Unfreeze", function(target)
+        local hrp = target.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then hrp.Anchored = false end
+    end},
+    {"Fling", function(target)
+        local hrp = target.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then hrp.Velocity = Vector3.new(9999,9999,9999) end
+    end},
+    {"Kick", function(target)
+        target:Kick("Hahaha Se-Fud3u")
+    end}
+    -- Outras ações podem ser adicionadas aqui
+}
+
+-- Criar os botões dos comandos
+for i, cmd in ipairs(commands) do
+    local button = Instance.new("TextButton", ScrollFrame)
+    button.Size = UDim2.new(1, -20, 0, 30)
+    button.Position = UDim2.new(0, 10, 0, 80 + (i * 40))
+    button.Text = cmd[1]
+    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.MouseButton1Click:Connect(function()
+        local name = playerBox.Text
+        local target = getTargetPlayer(name)
+        if target then
+            cmd[2](target)
+        else
+            warn("Jogador não encontrado: " .. name)
+        end
+    end)
+end
